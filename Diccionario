@@ -1,0 +1,266 @@
+/*****************************************************************************************************************
+	UNIVERSIDAD NACIONAL AUTONOMA DE MEXICO
+	FACULTAD DE ESTUDIOS SUPERIORES -ARAGON-
+
+	Computadoras y programacion. 
+	Daira Azul Donis Alvarez 323306146
+	
+	Quiso decir: Programa principal de la aplicacion de la distancia de Levenstein.
+	
+******************************************************************************************************************/
+
+
+#include "stdafx.h"
+#include <string.h>
+#include "corrector.h"
+#include <wctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_LEN 50
+#define MAX_WORDS 70000 
+
+
+//Funciones publicas del proyecto
+/*****************************************************************************************************************
+	DICCIONARIO: Esta funcion crea el diccionario completo
+	char *	szNombre				:	Nombre del archivo de donde se sacaran las palabras del diccionario	
+	char	szPalabras[][TAMTOKEN]	:	Arreglo con las palabras completas del diccionario
+	int		iEstadisticas[]			:	Arreglo con el numero de veces que aparecen las palabras en el diccionario
+	int &	iNumElementos			:	Numero de elementos en el diccionario
+******************************************************************************************************************/
+void	Diccionario(char* szNombre, char szPalabras[][TAMTOKEN], int iEstadisticas[], int& iNumElementos)
+{
+
+FILE* fp;
+fopen_s(&fp, szNombre, "r");
+if (fp != NULL) {
+	iNumElementos = 0;
+	char caracteres;
+	char szPalabraTemporal[TAMTOKEN];
+	int contador = 0;
+	int c;
+
+	while ((c = fgetc(fp)) != EOF) {
+
+		caracteres = (char)c;
+		if (caracteres == '\n' || caracteres == '\r' || caracteres == '\t' || caracteres == ' ' || caracteres == ',' || caracteres == ';') { //esto no se cuenta
+			szPalabraTemporal[contador] = '\0';
+
+			if (contador > 0) {
+				int  posicion = -1;
+				for (int i = 0; i < iNumElementos; i++) {
+					if (strcmp(szPalabras[i], szPalabraTemporal) == 0) {
+						posicion = i;
+						iEstadisticas[i]++;
+						break;
+					}
+
+
+
+					else {
+						if (iNumElementos < NUMPALABRAS) {
+							strcpy_s(szPalabras[iNumElementos], TAMTOKEN, szPalabraTemporal);
+							iEstadisticas[iNumElementos] = 1;
+							iNumElementos++;
+						}
+
+					}
+				}
+
+			}
+			contador = 0; 
+			szPalabraTemporal[contador] = '\0';
+		}
+		if (contador < TAMTOKEN - 1) {
+			szPalabraTemporal[contador++] = caracteres;
+		}
+	}
+	for (int i = 0; i < iNumElementos - 1; i++) {
+		for (int j = i + 1; j < iNumElementos; j++) {
+			if (strcmp(szPalabras[i], szPalabras[j]) > 0) {
+				char temp[TAMTOKEN];
+				strcpy_s(temp, szPalabras[i]);
+				strcpy_s(szPalabras[i], szPalabras[j]);
+				strcpy_s(szPalabras[j], temp);
+
+				int tempEstadistica = iEstadisticas[i];
+				iEstadisticas[i] = iEstadisticas[j];
+				iEstadisticas[j] = tempEstadistica;
+			}
+		}
+	}
+	fclose(fp); 
+
+}
+else {
+	iNumElementos = 0; 
+}
+
+}
+
+
+
+/*****************************************************************************************************************
+	ListaCandidatas: Esta funcion recupera desde el diccionario las palabras validas y su peso
+	Regresa las palabras ordenadas por su peso
+	char	szPalabrasSugeridas[][TAMTOKEN],	//Lista de palabras clonadas
+	int		iNumSugeridas,						//Lista de palabras clonadas
+	char	szPalabras[][TAMTOKEN],				//Lista de palabras del diccionario
+	int		iEstadisticas[],					//Lista de las frecuencias de las palabras
+	int		iNumElementos,						//Numero de elementos en el diccionario
+	char	szListaFinal[][TAMTOKEN],			//Lista final de palabras a sugerir
+	int		iPeso[],							//Peso de las palabras en la lista final
+	int &	iNumLista)							//Numero de elementos en la szListaFinal
+******************************************************************************************************************/
+void	ListaCandidatas(char szPalabrasSugeridas[][TAMTOKEN],int iNumSugeridas,char	szPalabras[][TAMTOKEN],int iEstadisticas[],int iNumElementos,char szListaFinal[][TAMTOKEN],int iPeso[],int& iNumLista)							
+{
+	iNumLista = 0; 
+	for (int paso = 0; paso < iNumSugeridas; paso++) { 
+
+		for (int c = 0; c < iNumElementos; c++) {
+
+			if (strcmp(szPalabrasSugeridas[paso], szPalabras[c]) == 0) { 	
+				strcpy_s(szListaFinal[iNumLista], TAMTOKEN, szPalabrasSugeridas[paso]);
+				iPeso[iNumLista] = iEstadisticas[c];
+				iNumLista++;
+				break;
+			}
+
+		}
+
+	}
+
+	bool bNoOrdenado = true; 
+
+	for (int j = 0; j < iNumLista && bNoOrdenado; j++) {
+		bNoOrdenado = false;
+
+		for (int k = 0; k < iNumLista - 1; k++) {
+
+			if (iPeso[k] < iPeso[k + 1]) { 
+				char auxPalabrasFinales[TAMTOKEN];
+				int auxiliarPeso;
+				strcpy_s(auxPalabrasFinales, TAMTOKEN, szListaFinal[k]);  
+				strcpy_s(szListaFinal[k], TAMTOKEN, szListaFinal[k + 1]);
+				strcpy_s(szListaFinal[k + 1], TAMTOKEN, auxPalabrasFinales);
+				auxiliarPeso = iPeso[k];
+				iPeso[k] = iPeso[k + 1];
+				iPeso[k + 1] = auxiliarPeso;
+
+				bNoOrdenado = true;
+			}
+
+		}
+
+	}
+}
+
+/*****************************************************************************************************************
+	ClonaPalabras: toma una palabra y obtiene todas las combinaciones y permutaciones requeridas por el metodo
+	char *	szPalabraLeida,						// Palabra a clonar
+	char	szPalabrasSugeridas[][TAMTOKEN], 	//Lista de palabras clonadas
+	int &	iNumSugeridas)						//Numero de elementos en la lista
+******************************************************************************************************************/
+
+void	ClonaPalabras(char* szPalabraLeida,char	szPalabrasSugeridas[][TAMTOKEN],int& iNumSugeridas)						
+{
+	iNumSugeridas = 0; 
+	strcpy_s(szPalabrasSugeridas[iNumSugeridas], TAMTOKEN, szPalabraLeida); 
+	iNumSugeridas++;
+	int longitud;
+	longitud = strlen(szPalabraLeida); 
+
+	for (int posicion = 0; posicion < longitud; posicion++) { 
+		char sinCaracter[TAMTOKEN]; 
+		int contador = 0; 
+		int contadorDos = 0; 
+
+		for (contador; contador < longitud; contador++) {
+
+			if (!(posicion == contador)) { 
+				sinCaracter[contadorDos] = szPalabraLeida[contador]; 
+				
+				contadorDos++; 
+			}
+
+		}
+
+		sinCaracter[contadorDos] = '\0'; 
+		strcpy_s(szPalabrasSugeridas[iNumSugeridas], TAMTOKEN, sinCaracter); 
+		iNumSugeridas++; 
+
+	}
+
+	for (int i = 0; i < longitud - 1; i++) { 
+		char PalabraRespaldo[TAMTOKEN]; 
+		strcpy_s(PalabraRespaldo, TAMTOKEN, szPalabraLeida); 
+		char auxCaracter;
+		auxCaracter = PalabraRespaldo[i];
+		PalabraRespaldo[i] = PalabraRespaldo[i + 1]; 
+		PalabraRespaldo[i + 1] = auxCaracter;
+		strcpy_s(szPalabrasSugeridas[iNumSugeridas], TAMTOKEN, PalabraRespaldo); 
+		iNumSugeridas++;
+	}
+
+	char abecedario[] = "abcdefghijklmnñopqrstuvwxyzáéíóú"; 
+	int longitud_abecedario = strlen(abecedario); 
+
+	for (int j = 0; j < longitud; j++) { 
+
+		for (int k = 0; k < longitud_abecedario; k++) { 
+			char PalabraRespaldoDos[TAMTOKEN]; 
+			strcpy_s(PalabraRespaldoDos, TAMTOKEN, szPalabraLeida);
+			PalabraRespaldoDos[j] = abecedario[k]; 
+			strcpy_s(szPalabrasSugeridas[iNumSugeridas], TAMTOKEN, PalabraRespaldoDos); 
+			iNumSugeridas++; 
+		}
+
+	}
+
+	for (int a = 0; a <= longitud; a++) { 
+
+		for (int b = 0; b < longitud_abecedario; b++) { 
+			char insertarPalabra[TAMTOKEN]; 
+			for (int c = 0; c < longitud + 1; c++) {
+
+				if (c == a) {
+					insertarPalabra[c] = abecedario[b];
+				}
+				else if (c > a) {
+					insertarPalabra[c] = szPalabraLeida[c - 1];
+				}
+				else {
+					insertarPalabra[c] = szPalabraLeida[c];
+				}
+
+			}
+			insertarPalabra[longitud + 1] = '\0';
+			strcpy_s(szPalabrasSugeridas[iNumSugeridas], TAMTOKEN, insertarPalabra);
+			iNumSugeridas++;
+		}
+
+	}
+
+	
+	bool bNoOrdenado = true; 
+	for (int j = 0; j < iNumSugeridas && bNoOrdenado; j++) {
+		bNoOrdenado = false; 
+
+		for (int k = 0; k < iNumSugeridas - 1; k++) {
+
+			if (strcmp(szPalabrasSugeridas[k], szPalabrasSugeridas[k + 1]) > 0) {
+				char auxPalabrasSugeridas[TAMTOKEN];
+				strcpy_s(auxPalabrasSugeridas, TAMTOKEN, szPalabrasSugeridas[k]); 
+				strcpy_s(szPalabrasSugeridas[k], TAMTOKEN, szPalabrasSugeridas[k + 1]);
+				strcpy_s(szPalabrasSugeridas[k + 1], TAMTOKEN, auxPalabrasSugeridas);
+
+				bNoOrdenado = true;
+			}
+
+		}
+
+	}
+}
+
+
+
