@@ -30,6 +30,10 @@
 ******************************************************************************************************************/
 void	Diccionario(char* szNombre, char szPalabras[][TAMTOKEN], int iEstadisticas[], int& iNumElementos)
 {
+	if (szNombre==NULL){
+		iNumElementos=0;
+		return;
+	}
 
 FILE* fp;
 fopen_s(&fp, szNombre, "r");
