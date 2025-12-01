@@ -121,16 +121,17 @@ void	ListaCandidatas(char szPalabrasSugeridas[][TAMTOKEN],int iNumSugeridas,char
 	iNumLista = 0; 
 	for (int paso = 0; paso < iNumSugeridas; paso++) { 
 
-		for (int c = 0; c < iNumElementos; c++) {
-
-			if (strcmp(szPalabrasSugeridas[paso], szPalabras[c]) == 0) { 	
-				strcpy_s(szListaFinal[iNumLista], TAMTOKEN, szPalabrasSugeridas[paso]);
-				iPeso[iNumLista] = iEstadisticas[c];
-				iNumLista++;
-				break;
+		int BuscaPalabraEnDiccionario{
+			int izquierda=0;
+			int derecha=iNumElementos-1;
+			while(izquierda<=iNumElementos){
+int medio=izquierda+(derecha-izquierda)/2;
+int comparacion=strcmp(palabra,diccionario[medio];)
 			}
 
+			
 		}
+		
 
 	}
 
