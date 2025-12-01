@@ -40,9 +40,9 @@ if (fp != NULL) {
 	int contador = 0;
 	int c;
 
-	while ((c = fgetc(fp)) != EOF) {
+	while ((caracteractual = fgetc(fp)) != EOF) {
 
-		caracteres = (char)c;
+		caracteres = (char)caracteractual;
 		if (caracteres == '\n' || caracteres == '\r' || caracteres == '\t' || caracteres == ' ' || caracteres == ',' || caracteres == ';') { //esto no se cuenta
 			szPalabraTemporal[contador] = '\0';
 
