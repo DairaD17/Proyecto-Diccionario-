@@ -16,6 +16,7 @@
 #include <wctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define ALFABETO
 #define MAX_LEN 50
 #define MAX_WORDS 70000 
 
@@ -42,7 +43,7 @@ if (fp != NULL) {
 	char caracteres;
 	char szPalabraTemporal[TAMTOKEN];
 	int contador = 0;
-	int c;
+	int caracteractual;
 
 	while ((caracteractual = fgetc(fp)) != EOF) {
 
@@ -79,6 +80,7 @@ if (fp != NULL) {
 			szPalabraTemporal[contador++] = caracteres;
 		}
 	}
+
 	for (int i = 0; i < iNumElementos - 1; i++) {
 		for (int j = i + 1; j < iNumElementos; j++) {
 			if (strcmp(szPalabras[i], szPalabras[j]) > 0) {
@@ -207,7 +209,8 @@ void	ClonaPalabras(char* szPalabraLeida,char	szPalabrasSugeridas[][TAMTOKEN],int
 		iNumSugeridas++;
 	}
 
-	char abecedario[] = "abcdefghijklmnñopqrstuvwxyzáéíóú"; 
+	 const char* abecedario=ALFABETO
+
 	int longitud_abecedario = strlen(abecedario); 
 
 	for (int j = 0; j < longitud; j++) { 
